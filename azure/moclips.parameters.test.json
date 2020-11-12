@@ -1,0 +1,18 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "IotHubs_santacruz_iothub_dev_connectionString": {
+            "value": null
+        },
+        "IotHubs_santacruz_iothub_dev_containerName": {
+            "value": null
+        },
+        "IotHubs_santacruz_iothub_dev_name": {
+            "value": null
+        },
+        "provisioningServices_SCZ_DPS_65303e4d_bcb9_4159_9f44_926116e154fe_name": {
+            "value": null
+        }
+    }
+}
