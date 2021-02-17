@@ -53,7 +53,44 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
         serviceBusTopics: []
         storageContainers: []
       }
-      routes: []
+      routes: [
+        {
+          name: 'DeviceUpdate.DigitalTwinChanges'
+          source: 'DigitalTwinChangeEvents'
+          condition: 'true'
+          endpointNames: [
+            'events'
+          ]
+          isEnabled: true
+        }
+        {
+          name: 'DeviceUpdate.DeviceLifecyle'
+          source: 'DeviceLifecycleEvents'
+          condition: 'opType = "deleteDeviceIdentity"'
+          endpointNames: [
+            'events'
+          ]
+          isEnabled: true
+        }
+        {
+          name: 'DeviceUpdate.Telemetry'
+          source: 'DeviceMessages'
+          condition: '$iothub-interface-id = "urn:azureiot:ModelDiscovery:ModelInformation:1"'
+          endpointNames: [
+            'events'
+          ]
+          isEnabled: true
+        }
+        {
+          name: 'DeviceUpdate.DeviceTwinChanges'
+          source: 'TwinChangeEvents'
+          condition: '(opType = "updateTwin" OR opType = "replaceTwin"'
+          endpointNames: [
+            'events'
+          ]
+          isEnabled: true
+        }        
+      ]
       fallbackRoute: {
         name: '$fallback'
         source: 'DeviceMessages'
