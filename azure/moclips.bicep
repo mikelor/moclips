@@ -5,7 +5,7 @@ param projectName string {
 }
 
 param projectEnvironment string {
-  default: 'dev'
+  default: 'qa'
 }
 
 var unique = uniqueString(resourceGroup().id)
@@ -15,99 +15,20 @@ param iotHubSkuName string = 'S1'
 param iotHubSkuCapacity int = 1
 param iotHubD2CPartitions int = 4
 
+param provisioningServicesSkuName string = 'S1'
+param provisioningServicesSkuCapacity int = 1
 
 var iotHubName = '${projectName}-iothub-${projectEnvironment}'
+var provisioningServicesName = '${projectName}-provsvcs-${projectEnvironment}'
+
 
 var storageAccountName = '${toLower(projectName)}${toLower(projectEnvironment)}${unique}'
 var storageEndpoint = '${projectName}StorageEndpoint'
 var storageContainerUpdatesName = 'updates'
 var storageContainerEventsName = 'events'
 
-var provisioningServicesName = '${projectName}-prvsvcs-${projectEnvironment}'
 
-resource storageAccountResource 'Microsoft.Storage/storageAccounts@2020-08-01-preview' = {
-  name: storageAccountName
-  location: location
-  sku: {
-    name: 'Standard_LRS'
-    tier: 'Standard'
-  }
-  kind: 'StorageV2'
-  properties: {
-    isHnsEnabled: false
-    networkAcls: {
-      bypass: 'AzureServices'
-      virtualNetworkRules: []
-      ipRules: []
-      defaultAction: 'Allow'
-    }
-    supportsHttpsTrafficOnly: true
-    encryption: {
-      services: {
-        file: {
-          keyType: 'Account'
-          enabled: true
-        }
-        blob: {
-          keyType: 'Account'
-          enabled: true
-        }
-      }
-      keySource: 'Microsoft.Storage'
-    }
-    accessTier: 'Hot'
-  }
-}
-
-resource blobServicesResource 'Microsoft.Storage/storageAccounts/blobServices@2020-08-01-preview' = {
-  name: '${storageAccountResource.name}/default'
-  properties: {
-    cors: {
-      corsRules: [
-        {
-          allowedOrigins: [
-            'https://iothub.hosting.portal.azure.net'
-          ]
-          allowedMethods: [
-            'DELETE'
-            'GET'
-            'HEAD'
-            'MERGE'
-            'POST'
-            'OPTIONS'
-            'PUT'
-            'PATCH'
-          ]
-          maxAgeInSeconds: 3000
-          exposedHeaders: [
-            '*'
-          ]
-          allowedHeaders: [
-            '*'
-          ]
-        }
-      ]
-    }
-    deleteRetentionPolicy: {
-      enabled: false
-    }
-  }
-}
-
-resource storageAccountContainerResource 'Microsoft.Storage/storageAccounts/blobServices/containers@2020-08-01-preview' = {
-  name: '${storageAccountResource.name}/default/${storageContainerUpdatesName}'
-  properties: {
-    defaultEncryptionScope: '$account-encryption-key'
-    denyEncryptionScopeOverride: false
-    publicAccess: 'None'
-  }
-  dependsOn: [
-    storageAccountResource
-  ]
-}
-
-
-resource iotHubResource 'Microsoft.Devices/IotHubs@2020-07-10-preview' = {
+resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
   name: iotHubName
   location: location
   tags: {
@@ -127,47 +48,12 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-07-10-preview' = {
     }
     routing: {
       endpoints: {
-        storageContainers: [
-          {
-            // really need a listConnectionString() function
-            connectionString: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccountResource.id, storageAccountResource.apiVersion).keys[0].value}'
-            containerName: storageContainerEventsName
-            fileNameFormat: '{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}'
-            batchFrequencyInSeconds: 100
-            maxChunkSizeInBytes: 104857600
-            encoding: 'JSON'
-            name: storageEndpoint
-          }
-        ]
+        eventHubs: []
+        serviceBusQueues: []
+        serviceBusTopics: []
+        storageContainers: []
       }
       routes: [
-        {
-          name: 'DigitalTwinChanges'
-          source: 'DigitalTwinChangeEvents'
-          condition: 'true'
-          endpointNames: [
-            'events'
-          ]
-          isEnabled: true
-        }
-        {
-          name: 'DeviceLifeCycle'
-          source: 'DeviceLifecycleEvents'
-          condition: 'opType = \'deleteDeviceIdentity\''
-          endpointNames: [
-            'events'
-          ]
-          isEnabled: true
-        }
-        {
-          name: 'TelemetryModelInformation'
-          source: 'DeviceMessages'
-          condition: '$iothub-interface-id = "urn:azureiot:ModelDiscovery:ModelInformation:1"'
-          endpointNames: [
-            'events'
-          ]
-          isEnabled: true
-        }
         {
           name: 'DeviceUpdate.DigitalTwinChanges'
           source: 'DigitalTwinChangeEvents'
@@ -178,9 +64,9 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-07-10-preview' = {
           isEnabled: true
         }
         {
-          name: 'DeviceUpdate.DeviceLifeCycle'
+          name: 'DeviceUpdate.DeviceLifecyle'
           source: 'DeviceLifecycleEvents'
-          condition: 'opType = \'deleteDeviceIdentity\''
+          condition: 'opType = "deleteDeviceIdentity"'
           endpointNames: [
             'events'
           ]
@@ -198,12 +84,12 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-07-10-preview' = {
         {
           name: 'DeviceUpdate.DeviceTwinChanges'
           source: 'TwinChangeEvents'
-          condition: '(opType = \'updateTwin\' OR opType = \'replaceTwin\')'
+          condition: '(opType = "updateTwin" OR opType = "replaceTwin")'
           endpointNames: [
             'events'
           ]
           isEnabled: true
-        }
+        }        
       ]
       fallbackRoute: {
         name: '$fallback'
@@ -218,8 +104,8 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-07-10-preview' = {
     storageEndpoints: {
       '$default': {
         sasTtlAsIso8601: 'PT1H'
-        connectionString: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccountResource.id, storageAccountResource.apiVersion).keys[0].value}'
-        containerName: storageContainerEventsName
+        connectionString: ''
+        containerName: ''
       }
     }
     messagingEndpoints: {
@@ -245,19 +131,17 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-07-10-preview' = {
 
 resource provisioningServicesResource 'Microsoft.Devices/provisioningServices@2020-03-01' = {
   name: provisioningServicesName
-  location: 'West US'
+  location: location
   sku: {
-    name: 'S1'
-    capacity: 1
+    name: provisioningServicesSkuName
+    capacity: provisioningServicesSkuCapacity
   }
   properties: {
-    state: 'Active'
-    provisioningState: 'Succeeded'
     iotHubs: [
       {
         applyAllocationPolicy: true
         allocationWeight: 1
-        connectionString: 'HostName=${projectName}-iothub-${projectEnvironment}.azure-devices.net;SharedAccessKeyName=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].keyName};SharedAccessKey=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].primaryKey}'
+        connectionString:'HostName=${projectName}-iothub-${projectEnvironment}.azure-devices.net;SharedAccessKeyName=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].keyName};SharedAccessKey=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].primaryKey}'
         location: location
       }
     ]
