@@ -1,6 +1,6 @@
 # Project Moclips
 IoT Experimentation with Project Santa Cruz
-A repository for documenting my good practices in getting up and running with Microsofts [Project Santa Cruz](https://github.com/microsoft/project-santa-cruze
+A repository for documenting my good practices in getting up and running with Microsoft's [Project Santa Cruz](https://github.com/microsoft/project-santa-cruz)
 
 ## Setting Up The Azure Environment
 Press this button to deploy the people counting application to either the Azure public cloud or your Santa Cruz AI device:
