@@ -19,8 +19,8 @@ Currently there are two ways to setup your Azure Environment:
 If using WSL and the AZ CLI, simply clone this repository and utilize the azure/deployMoclips.sh script to create the necessary infrastructure for the Santa Cruz development environment
 
 ```
-cd modclips/azure
-./deployMoclips.sh <subscriptionName> <projectName> <projectEnvironment>
+$ cd moclips/azure
+$ ./deployMoclips.sh <subscriptionName> <projectName> <projectEnvironment>
 ```
 Where
   * **subscriptionName** is the name of your Azure Subscription
@@ -32,8 +32,8 @@ The following example will create a "my-cruze-dev-grp" resource group in the You
   2. my-cruz-provsvcs-dev
 
 ```
-cd moclips/azure
-./deployMoclips.sh YourSubscription my-cruz dev
+$ cd moclips/azure
+$ ./deployMoclips.sh YourSubscription my-cruz dev
 ```
 
 ### Via Azure Deploy
