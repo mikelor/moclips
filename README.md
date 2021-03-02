@@ -7,7 +7,13 @@ At the moment, this repository contains an Azure Bicep file and generated ARM Te
 bicep build moclips.bicep
 ```
 
+You can use the generated ARM template to setup the Azure Environment needed for the Project Santa Cruz DevKit.
+
 ## Setting Up The Azure Environment
+Currently there are two ways to setup your Azure Environment:
+  1. Via the WSL (Windows Subsystem for Linux) Command Line
+  2. Via the Deploy to Azure Button
+
 ### Via the Command Line
 If using WSL and the AZ CLI, simply clone this repository and utilize the azure/deployMoclips.sh script to create the necessary infrastructure for the Santa Cruz development environment
 
