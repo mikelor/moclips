@@ -47,3 +47,6 @@ After creating the Azure Environment, you can start the Project Santa Cruz Out o
 
 ## Links
   * [Santa Cruz AI App](https://github.com/george-moore/Santa-Cruz-AI-App)
+
+#### Why Moclips?
+I needed a project name, and since Santa Cruz is a city on the California coast, I chose wonderful Moclips, WA. Definitely not Santa Cruz, but if you need some good Clam Chowder, stop by the Ocean Crest resort.
