@@ -3,11 +3,11 @@ IoT Experimentation with Project Santa Cruz
 
 A repository for documenting my good practices in getting up and running with Microsoft's [Project Santa Cruz](https://github.com/microsoft/project-santa-cruz)
 
-At the moment, this repository contains an Azure Bicep file and generated ARM Template created via
+At the moment, this repository contains an [Azure Bicep](https://github.com/Azure/bicep) file and generated ARM Template created via the bicep build command.
 ```
-bicep build moclips.bicep
+$ bicep build moclips.bicep
 ```
-
+You do not need to install bicep to utilize this repo.
 You can use the generated ARM template to setup the Azure Environment needed for the Project Santa Cruz DevKit.
 
 ## Setting Up The Azure Environment
