@@ -1,5 +1,6 @@
 # Project Moclips
 IoT Experimentation with Project Santa Cruz
+
 A repository for documenting my good practices in getting up and running with Microsoft's [Project Santa Cruz](https://github.com/microsoft/project-santa-cruz)
 
 At the moment, this repository contains an Azure Bicep file and generated ARM Template created via
