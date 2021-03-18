@@ -19,7 +19,8 @@ param provisioningServicesSkuName string = 'S1'
 param provisioningServicesSkuCapacity int = 1
 
 var iotHubName = '${projectName}-iothub-${projectEnvironment}'
-var provisioningServicesName = '${projectName}-provsvcs-${projectEnvironment}'
+var provisioningServicesName = '${toLower(projectName)}${toLower(projectEnvironment)}${toLower(uniqueString(resourceGroup().id))}'
+var deviceUpdatesName = '${projectName}'
 
 
 var storageAccountName = '${toLower(projectName)}${toLower(projectEnvironment)}${unique}'
@@ -147,4 +148,10 @@ resource provisioningServicesResource 'Microsoft.Devices/provisioningServices@20
     ]
     allocationPolicy: 'Hashed'
   }
+}
+
+resource deviceUdatesResource 'Microsoft.DeviceUpdate/accounts@2020-03-01-preview' = {
+  name: deviceUpdatesName
+  location: location
+  properties: {}
 }

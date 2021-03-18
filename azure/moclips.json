@@ -41,7 +41,8 @@
   "variables": {
     "unique": "[uniqueString(resourceGroup().id)]",
     "iotHubName": "[format('{0}-iothub-{1}', parameters('projectName'), parameters('projectEnvironment'))]",
-    "provisioningServicesName": "[format('{0}-provsvcs-{1}', parameters('projectName'), parameters('projectEnvironment'))]",
+    "provisioningServicesName": "[format('{0}{1}{2}', toLower(parameters('projectName')), toLower(parameters('projectEnvironment')), toLower(uniqueString(resourceGroup().id)))]",
+    "deviceUpdatesName": "[parameters('projectName')]",
     "storageAccountName": "[format('{0}{1}{2}', toLower(parameters('projectName')), toLower(parameters('projectEnvironment')), variables('unique'))]",
     "storageEndpoint": "[format('{0}StorageEndpoint', parameters('projectName'))]",
     "storageContainerUpdatesName": "updates",
@@ -173,6 +174,13 @@
       "dependsOn": [
         "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
       ]
+    },
+    {
+      "type": "Microsoft.DeviceUpdate/accounts",
+      "apiVersion": "2020-03-01-preview",
+      "name": "[variables('deviceUpdatesName')]",
+      "location": "[parameters('location')]",
+      "properties": {}
     }
   ]
 }
