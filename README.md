@@ -44,7 +44,7 @@ If you'd rather use the Azure Deploy script, simply press Deploy to Azure button
 At the moment this creates an Azure IoTHub as well as the Device Provisioning Service
 
 ### Next Steps
-After creating the Azure Environment, you can start the Project Santa Cruz Out of the Box Experience ([OOBE Walkthrough](https://github.com/microsoft/Project-Santa-Cruz-Preview/blob/main/user-guides/getting_started/oobe.md))
+After creating the Azure Environment, you can start the Project Santa Cruz Out of the Box Experience ([OOBE Walkthrough](https://docs.microsoft.com/en-us/azure/azure-percept/quickstart-percept-dk-unboxing))
 
 ## Links
   * [Santa Cruz AI App](https://github.com/george-moore/Santa-Cruz-AI-App)
