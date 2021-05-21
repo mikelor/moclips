@@ -1,7 +1,7 @@
 # Project Moclips
 IoT Experimentation with Project Santa Cruz
 
-A repository for documenting my good practices in getting up and running with Microsoft's [Project Santa Cruz](https://github.com/microsoft/project-santa-cruz)
+A repository for documenting my good practices in getting up and running with Microsoft's [Azure Percept Private Preview](https://github.com/microsoft/Azure-Percept-Private-Preview)
 
 At the moment, this repository contains an [Azure Bicep](https://github.com/Azure/bicep) file and generated ARM Template created via the bicep build command.
 ```
@@ -44,10 +44,13 @@ If you'd rather use the Azure Deploy script, simply press Deploy to Azure button
 At the moment this creates an Azure IoTHub as well as the Device Provisioning Service
 
 ### Next Steps
-After creating the Azure Environment, you can start the Project Santa Cruz Out of the Box Experience ([OOBE Walkthrough](https://docs.microsoft.com/en-us/azure/azure-percept/quickstart-percept-dk-unboxing))
+After creating the Azure Environment, you can start the Azure Percept Out of the Box Experience ([OOBE Walkthrough](https://docs.microsoft.com/en-us/azure/azure-percept/quickstart-percept-dk-unboxing))
 
 ## Links
+Here are some links to some interesting projects that that people are working on with Azure Percept
   * [Santa Cruz AI App](https://github.com/george-moore/Santa-Cruz-AI-App)
+  * [Package Delivery Monitoring](https://techcommunity.microsoft.com/t5/internet-of-things/set-up-your-own-end-to-end-package-delivery-monitoring-ai/ba-p/2323165)
+  * [Percept Mobile - Obstacle Avoidance Lego Car](https://techcommunity.microsoft.com/t5/internet-of-things/perceptmobile-azure-percept-obstacle-avoidance-lego-car/ba-p/2352666)
 
 #### Why Moclips?
 I needed a project name, and since Santa Cruz is a city on the California coast, I chose wonderful Moclips, WA. Definitely not Santa Cruz, but if you need some good Clam Chowder, stop by the Ocean Crest resort.
