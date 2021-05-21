@@ -50,6 +50,7 @@ After creating the Azure Environment, you can start the Azure Percept Out of the
 Azure resources that may be helpful in building your Percept based solution
   * [Azure Live Analytics](https://techcommunity.microsoft.com/t5/internet-of-things/new-capabilities-from-azure-live-video-analytics/ba-p/2215642)
   * [Azure IoT Central](https://apps.azureiotcentral.com/)
+
 Here are some links to some interesting projects that that people are working on with Azure Percept
   * [Santa Cruz AI App](https://github.com/george-moore/Santa-Cruz-AI-App)
   * [Package Delivery Monitoring](https://techcommunity.microsoft.com/t5/internet-of-things/set-up-your-own-end-to-end-package-delivery-monitoring-ai/ba-p/2323165)
