@@ -1,50 +1,146 @@
-param projectName string {
-  default: 'moclips'
-  minLength: 1
-  maxLength: 11
-}
+@minLength(3)
+@maxLength(8)
+param projectName string = 'moclips'
 
-param projectEnvironment string {
-  default: 'qa'
-}
-
-var unique = uniqueString(resourceGroup().id)
+@allowed([
+  'dev'
+  'qa'
+  'stg'
+  'prod'
+])
+param projectEnvironment string = 'qa'
 
 param location string = resourceGroup().location
 param iotHubSkuName string = 'S1'
 param iotHubSkuCapacity int = 1
-param iotHubD2CPartitions int = 4
 
 param provisioningServicesSkuName string = 'S1'
 param provisioningServicesSkuCapacity int = 1
 
 var iotHubName = '${projectName}-iothub-${projectEnvironment}'
+var iotHubConsumerGroupName = 'adum'
 var provisioningServicesName = '${toLower(projectName)}${toLower(projectEnvironment)}${toLower(uniqueString(resourceGroup().id))}'
-var deviceUpdatesName = '${projectName}'
+
+var aduName = '${projectName}-adu-${projectEnvironment}'
+var aduInstanceName = '${projectName}-adui-${projectEnvironment}'
 
 
-var storageAccountName = '${toLower(projectName)}${toLower(projectEnvironment)}${unique}'
+var storageAccountName = '${toLower(projectName)}${toLower(projectEnvironment)}${toLower(uniqueString(resourceGroup().id))}'
 var storageEndpoint = '${projectName}StorageEndpoint'
 var storageContainerUpdatesName = 'updates'
 var storageContainerEventsName = 'events'
 
+resource storageAccountResource 'Microsoft.Storage/storageAccounts@2021-04-01' = {
+  name: storageAccountName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+    tier: 'Standard'
+  }
+  kind: 'StorageV2'
+}
+
+resource storageAccountBlobResource 'Microsoft.Storage/storageAccounts/blobServices@2021-04-01' = {
+  parent: storageAccountResource
+  name: 'default'
+  properties: {
+    cors: {
+      corsRules: [
+        {
+          allowedOrigins: [
+            'https://iothub.hosting.portal.azure.net'
+          ]
+          allowedMethods: [
+            'DELETE'
+            'GET'
+            'HEAD'
+            'MERGE'
+            'POST'
+            'OPTIONS'
+            'PUT'
+            'PATCH'
+          ]
+          maxAgeInSeconds: 3000
+          exposedHeaders: [
+            '*'
+          ]
+          allowedHeaders: [
+            '*'
+          ]
+        }
+      ]
+    }
+    deleteRetentionPolicy: {
+      enabled: false
+    }
+  }
+}
+
+resource storageAccountBlobContainerResource 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-04-01' = {
+  parent: storageAccountBlobResource
+  name: 'updates'
+  properties: {
+    publicAccess: 'None'
+  }
+  dependsOn: [
+    storageAccountResource
+  ]
+}
 
 resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
   name: iotHubName
   location: location
   tags: {
-    '!iot-device-group-names': '["Santa Cruz Dev Kits"]'
+    '!iot-device-group-names': '["${projectName} Dev Kits"]'
   }
   sku: {
     name: iotHubSkuName
     capacity: iotHubSkuCapacity
   }
   properties: {
+    authorizationPolicies: [
+      {
+        keyName: 'iotHubOwner'
+        rights: 'RegistryWrite, ServiceConnect, DeviceConnect'
+      }
+      {
+        keyName: 'service'
+        rights: 'ServiceConnect'
+      }
+      {
+        keyName: 'device'
+        rights: 'DeviceConnect'
+      }
+      {
+        keyName: 'registryRead'
+        rights: 'RegistryRead'
+      }
+      {
+        keyName: 'registryReadWrite'
+        rights: 'RegistryWrite'
+      }
+      {
+        keyName: 'deviceUpdateService'
+        rights: 'RegistryRead, ServiceConnect, DeviceConnect'
+      }
+    ]
+    cloudToDevice: {
+      maxDeliveryCount: 10
+      defaultTtlAsIso8601: 'PT1H'
+      feedback: {
+        lockDurationAsIso8601: 'PT1M'
+        ttlAsIso8601: 'PT1H'
+        maxDeliveryCount: 10
+      }
+    }
+    enableFileUploadNotifications: false
+    features: 'None'
     ipFilterRules: []
-    eventHubEndpoints: {
-      events: {
-        retentionTimeInDays: 1
-        partitionCount: iotHubD2CPartitions
+    messagingEndpoints: {
+      fileNotifications: {
+        lockDurationAsIso8601: 'PT1M'
+        ttlAsIso8601: 'PT1H'
+        maxDeliveryCount: 10
       }
     }
     routing: {
@@ -55,6 +151,15 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
         storageContainers: []
       }
       routes: [
+        {
+          name: 'DeviceUpdate.DeviceTwinChanges'
+          source: 'TwinChangeEvents'
+          condition: '(opType = "updateTwin" OR opType = "replaceTwin") AND IS_DEFINED($body.tags.ADUGroup)'
+          endpointNames: [
+            'events'
+          ]
+          isEnabled: true
+        }   
         {
           name: 'DeviceUpdate.DigitalTwinChanges'
           source: 'DigitalTwinChangeEvents'
@@ -67,12 +172,13 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
         {
           name: 'DeviceUpdate.DeviceLifecyle'
           source: 'DeviceLifecycleEvents'
-          condition: 'opType = "deleteDeviceIdentity"'
+          condition: 'opType = "deleteDeviceIdentity" OR opType = "deleteModuleIdentity"'
           endpointNames: [
             'events'
           ]
           isEnabled: true
         }
+  /*
         {
           name: 'DeviceUpdate.Telemetry'
           source: 'DeviceMessages'
@@ -82,15 +188,7 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
           ]
           isEnabled: true
         }
-        {
-          name: 'DeviceUpdate.DeviceTwinChanges'
-          source: 'TwinChangeEvents'
-          condition: '(opType = "updateTwin" OR opType = "replaceTwin")'
-          endpointNames: [
-            'events'
-          ]
-          isEnabled: true
-        }        
+  */   
       ]
       fallbackRoute: {
         name: '$fallback'
@@ -102,6 +200,8 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
         isEnabled: true
       }
     }
+
+/*
     storageEndpoints: {
       '$default': {
         sasTtlAsIso8601: 'PT1H'
@@ -109,25 +209,44 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
         containerName: ''
       }
     }
-    messagingEndpoints: {
-      fileNotifications: {
-        lockDurationAsIso8601: 'PT1M'
-        ttlAsIso8601: 'PT1H'
-        maxDeliveryCount: 10
-      }
-    }
-    enableFileUploadNotifications: false
-    cloudToDevice: {
-      maxDeliveryCount: 10
-      defaultTtlAsIso8601: 'PT1H'
-      feedback: {
-        lockDurationAsIso8601: 'PT1M'
-        ttlAsIso8601: 'PT1H'
-        maxDeliveryCount: 10
-      }
-    }
-    features: 'None'
+*/
   }
+}
+
+resource iotHubEventHubEndpointConsumerGroupResource 'Microsoft.Devices/IotHubs/eventHubEndpoints/ConsumerGroups@2020-08-01' = {
+  name: '${iotHubName}/events/${iotHubConsumerGroupName}'
+  properties: {
+    name: iotHubConsumerGroupName
+  }
+  dependsOn: [
+    iotHubResource
+  ]
+}
+
+
+resource aduAccountsResource 'Microsoft.DeviceUpdate/accounts@2020-03-01-preview' = {
+  name: aduName
+  location: location
+  properties: {}
+}
+
+resource aduAccountsInstanceResource 'Microsoft.DeviceUpdate/accounts/instances@2020-03-01-preview' = {
+  parent: aduAccountsResource
+  name: aduInstanceName
+  location: location
+  properties: {
+    iotHubs: [
+      {
+        resourceId: iotHubResource.id
+        ioTHubConnectionString:'HostName=${iotHubResource.properties.hostName};SharedAccessKeyName=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].keyName};SharedAccessKey=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].primaryKey}'
+        eventHubConnectionString:'Endpoint=${iotHubResource.properties.eventHubEndpoints.events.endpoint};SharedAccessKeyName=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].keyName};SharedAccessKey=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].primaryKey};EntityPath=${iotHubResource.properties.eventHubEndpoints.events.path}'
+      }
+    ]
+  }
+  dependsOn: [
+    iotHubResource
+    aduAccountsResource
+  ]
 }
 
 resource provisioningServicesResource 'Microsoft.Devices/provisioningServices@2020-03-01' = {
@@ -142,7 +261,7 @@ resource provisioningServicesResource 'Microsoft.Devices/provisioningServices@20
       {
         applyAllocationPolicy: true
         allocationWeight: 1
-        connectionString:'HostName=${projectName}-iothub-${projectEnvironment}.azure-devices.net;SharedAccessKeyName=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].keyName};SharedAccessKey=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].primaryKey}'
+        connectionString:'HostName=${iotHubResource.properties.hostName};SharedAccessKeyName=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].keyName};SharedAccessKey=${listKeys(iotHubResource.id, iotHubResource.apiVersion).value[0].primaryKey}'
         location: location
       }
     ]
@@ -150,8 +269,7 @@ resource provisioningServicesResource 'Microsoft.Devices/provisioningServices@20
   }
 }
 
-resource deviceUdatesResource 'Microsoft.DeviceUpdate/accounts@2020-03-01-preview' = {
-  name: deviceUpdatesName
-  location: location
-  properties: {}
-}
+output stgAccount string = storageAccountName
+output stgEndpoint string = storageEndpoint
+output stgContainerUpdatesName string = storageContainerUpdatesName 
+output stgContainerEventsName string = storageContainerEventsName 

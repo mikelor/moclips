@@ -1,16 +1,29 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.4.63.48766",
+      "templateHash": "6662767391602207130"
+    }
+  },
   "parameters": {
     "projectName": {
       "type": "string",
-      "minLength": 1,
-      "maxLength": 11,
-      "defaultValue": "moclips"
+      "defaultValue": "moclips",
+      "maxLength": 8,
+      "minLength": 3
     },
     "projectEnvironment": {
       "type": "string",
-      "defaultValue": "qa"
+      "defaultValue": "qa",
+      "allowedValues": [
+        "dev",
+        "qa",
+        "stg",
+        "prod"
+      ]
     },
     "location": {
       "type": "string",
@@ -24,10 +37,6 @@
       "type": "int",
       "defaultValue": 1
     },
-    "iotHubD2CPartitions": {
-      "type": "int",
-      "defaultValue": 4
-    },
     "provisioningServicesSkuName": {
       "type": "string",
       "defaultValue": "S1"
@@ -39,34 +48,135 @@
   },
   "functions": [],
   "variables": {
-    "unique": "[uniqueString(resourceGroup().id)]",
     "iotHubName": "[format('{0}-iothub-{1}', parameters('projectName'), parameters('projectEnvironment'))]",
+    "iotHubConsumerGroupName": "adum",
     "provisioningServicesName": "[format('{0}{1}{2}', toLower(parameters('projectName')), toLower(parameters('projectEnvironment')), toLower(uniqueString(resourceGroup().id)))]",
-    "deviceUpdatesName": "[parameters('projectName')]",
-    "storageAccountName": "[format('{0}{1}{2}', toLower(parameters('projectName')), toLower(parameters('projectEnvironment')), variables('unique'))]",
+    "aduName": "[format('{0}-adu-{1}', parameters('projectName'), parameters('projectEnvironment'))]",
+    "aduInstanceName": "[format('{0}-adui-{1}', parameters('projectName'), parameters('projectEnvironment'))]",
+    "storageAccountName": "[format('{0}{1}{2}', toLower(parameters('projectName')), toLower(parameters('projectEnvironment')), toLower(uniqueString(resourceGroup().id)))]",
     "storageEndpoint": "[format('{0}StorageEndpoint', parameters('projectName'))]",
     "storageContainerUpdatesName": "updates",
     "storageContainerEventsName": "events"
   },
   "resources": [
     {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-04-01",
+      "name": "[variables('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2"
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2021-04-01",
+      "name": "[format('{0}/{1}', variables('storageAccountName'), 'default')]",
+      "properties": {
+        "cors": {
+          "corsRules": [
+            {
+              "allowedOrigins": [
+                "https://iothub.hosting.portal.azure.net"
+              ],
+              "allowedMethods": [
+                "DELETE",
+                "GET",
+                "HEAD",
+                "MERGE",
+                "POST",
+                "OPTIONS",
+                "PUT",
+                "PATCH"
+              ],
+              "maxAgeInSeconds": 3000,
+              "exposedHeaders": [
+                "*"
+              ],
+              "allowedHeaders": [
+                "*"
+              ]
+            }
+          ]
+        },
+        "deleteRetentionPolicy": {
+          "enabled": false
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2021-04-01",
+      "name": "[format('{0}/{1}/{2}', variables('storageAccountName'), 'default', 'updates')]",
+      "properties": {
+        "publicAccess": "None"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', variables('storageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ]
+    },
+    {
       "type": "Microsoft.Devices/IotHubs",
       "apiVersion": "2020-08-01",
       "name": "[variables('iotHubName')]",
       "location": "[parameters('location')]",
       "tags": {
-        "!iot-device-group-names": "[[\"Santa Cruz Dev Kits\"]"
+        "!iot-device-group-names": "[format('[\"{0} Dev Kits\"]', parameters('projectName'))]"
       },
       "sku": {
         "name": "[parameters('iotHubSkuName')]",
         "capacity": "[parameters('iotHubSkuCapacity')]"
       },
       "properties": {
+        "authorizationPolicies": [
+          {
+            "keyName": "iotHubOwner",
+            "rights": "RegistryWrite, ServiceConnect, DeviceConnect"
+          },
+          {
+            "keyName": "service",
+            "rights": "ServiceConnect"
+          },
+          {
+            "keyName": "device",
+            "rights": "DeviceConnect"
+          },
+          {
+            "keyName": "registryRead",
+            "rights": "RegistryRead"
+          },
+          {
+            "keyName": "registryReadWrite",
+            "rights": "RegistryWrite"
+          },
+          {
+            "keyName": "deviceUpdateService",
+            "rights": "RegistryRead, ServiceConnect, DeviceConnect"
+          }
+        ],
+        "cloudToDevice": {
+          "maxDeliveryCount": 10,
+          "defaultTtlAsIso8601": "PT1H",
+          "feedback": {
+            "lockDurationAsIso8601": "PT1M",
+            "ttlAsIso8601": "PT1H",
+            "maxDeliveryCount": 10
+          }
+        },
+        "enableFileUploadNotifications": false,
+        "features": "None",
         "ipFilterRules": [],
-        "eventHubEndpoints": {
-          "events": {
-            "retentionTimeInDays": 1,
-            "partitionCount": "[parameters('iotHubD2CPartitions')]"
+        "messagingEndpoints": {
+          "fileNotifications": {
+            "lockDurationAsIso8601": "PT1M",
+            "ttlAsIso8601": "PT1H",
+            "maxDeliveryCount": 10
           }
         },
         "routing": {
@@ -77,6 +187,15 @@
             "storageContainers": []
           },
           "routes": [
+            {
+              "name": "DeviceUpdate.DeviceTwinChanges",
+              "source": "TwinChangeEvents",
+              "condition": "(opType = \"updateTwin\" OR opType = \"replaceTwin\") AND IS_DEFINED($body.tags.ADUGroup)",
+              "endpointNames": [
+                "events"
+              ],
+              "isEnabled": true
+            },
             {
               "name": "DeviceUpdate.DigitalTwinChanges",
               "source": "DigitalTwinChangeEvents",
@@ -89,25 +208,7 @@
             {
               "name": "DeviceUpdate.DeviceLifecyle",
               "source": "DeviceLifecycleEvents",
-              "condition": "opType = \"deleteDeviceIdentity\"",
-              "endpointNames": [
-                "events"
-              ],
-              "isEnabled": true
-            },
-            {
-              "name": "DeviceUpdate.Telemetry",
-              "source": "DeviceMessages",
-              "condition": "$iothub-interface-id = \"urn:azureiot:ModelDiscovery:ModelInformation:1\"",
-              "endpointNames": [
-                "events"
-              ],
-              "isEnabled": true
-            },
-            {
-              "name": "DeviceUpdate.DeviceTwinChanges",
-              "source": "TwinChangeEvents",
-              "condition": "(opType = \"updateTwin\" OR opType = \"replaceTwin\")",
+              "condition": "opType = \"deleteDeviceIdentity\" OR opType = \"deleteModuleIdentity\"",
               "endpointNames": [
                 "events"
               ],
@@ -123,33 +224,45 @@
             ],
             "isEnabled": true
           }
-        },
-        "storageEndpoints": {
-          "$default": {
-            "sasTtlAsIso8601": "PT1H",
-            "connectionString": "",
-            "containerName": ""
-          }
-        },
-        "messagingEndpoints": {
-          "fileNotifications": {
-            "lockDurationAsIso8601": "PT1M",
-            "ttlAsIso8601": "PT1H",
-            "maxDeliveryCount": 10
-          }
-        },
-        "enableFileUploadNotifications": false,
-        "cloudToDevice": {
-          "maxDeliveryCount": 10,
-          "defaultTtlAsIso8601": "PT1H",
-          "feedback": {
-            "lockDurationAsIso8601": "PT1M",
-            "ttlAsIso8601": "PT1H",
-            "maxDeliveryCount": 10
-          }
-        },
-        "features": "None"
+        }
       }
+    },
+    {
+      "type": "Microsoft.Devices/IotHubs/eventHubEndpoints/ConsumerGroups",
+      "apiVersion": "2020-08-01",
+      "name": "[format('{0}/events/{1}', variables('iotHubName'), variables('iotHubConsumerGroupName'))]",
+      "properties": {
+        "name": "[variables('iotHubConsumerGroupName')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.DeviceUpdate/accounts",
+      "apiVersion": "2020-03-01-preview",
+      "name": "[variables('aduName')]",
+      "location": "[parameters('location')]",
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.DeviceUpdate/accounts/instances",
+      "apiVersion": "2020-03-01-preview",
+      "name": "[format('{0}/{1}', variables('aduName'), variables('aduInstanceName'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "iotHubs": [
+          {
+            "resourceId": "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]",
+            "ioTHubConnectionString": "[format('HostName={0};SharedAccessKeyName={1};SharedAccessKey={2}', reference(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))).hostName, listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].keyName, listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].primaryKey)]",
+            "eventHubConnectionString": "[format('Endpoint={0};SharedAccessKeyName={1};SharedAccessKey={2};EntityPath={3}', reference(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))).eventHubEndpoints.events.endpoint, listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].keyName, listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].primaryKey, reference(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))).eventHubEndpoints.events.path)]"
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DeviceUpdate/accounts', variables('aduName'))]",
+        "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
+      ]
     },
     {
       "type": "Microsoft.Devices/provisioningServices",
@@ -165,7 +278,7 @@
           {
             "applyAllocationPolicy": true,
             "allocationWeight": 1,
-            "connectionString": "[format('HostName={0}-iothub-{1}.azure-devices.net;SharedAccessKeyName={2};SharedAccessKey={3}', parameters('projectName'), parameters('projectEnvironment'), listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].keyName, listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].primaryKey)]",
+            "connectionString": "[format('HostName={0};SharedAccessKeyName={1};SharedAccessKey={2}', reference(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))).hostName, listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].keyName, listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].primaryKey)]",
             "location": "[parameters('location')]"
           }
         ],
@@ -174,13 +287,24 @@
       "dependsOn": [
         "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
       ]
-    },
-    {
-      "type": "Microsoft.DeviceUpdate/accounts",
-      "apiVersion": "2020-03-01-preview",
-      "name": "[variables('deviceUpdatesName')]",
-      "location": "[parameters('location')]",
-      "properties": {}
     }
-  ]
+  ],
+  "outputs": {
+    "stgAccount": {
+      "type": "string",
+      "value": "[variables('storageAccountName')]"
+    },
+    "stgEndpoint": {
+      "type": "string",
+      "value": "[variables('storageEndpoint')]"
+    },
+    "stgContainerUpdatesName": {
+      "type": "string",
+      "value": "[variables('storageContainerUpdatesName')]"
+    },
+    "stgContainerEventsName": {
+      "type": "string",
+      "value": "[variables('storageContainerEventsName')]"
+    }
+  }
 }
