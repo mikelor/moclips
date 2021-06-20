@@ -1,50 +1,56 @@
 # Project Moclips
-IoT Experimentation with Project Santa Cruz
+A repository for documenting *my* good practices for setting up an  infrastructure environment in Azure for hosting IoT solutions with [Azure Percept](https://azure.microsoft.com/en-us/services/azure-percept/) and other IoT Edge devices.
 
-A repository for documenting my good practices in getting up and running with Microsoft's [Azure Percept Private Preview](https://github.com/microsoft/Azure-Percept-Private-Preview)
+See the following environment diagram for an overview of the resources created.
+![Moclips Environment Diagram](https://github.com/mikelor/moclips/blob/main/doc/moclipsenvironment.png).
 
-At the moment, this repository contains an [Azure Bicep](https://github.com/Azure/bicep) file and generated ARM Template created via the bicep build command.
-```
-$ bicep build moclips.bicep
-```
-You do not need to install bicep to utilize this repo.
-You can use the generated ARM template to setup the Azure Environment needed for the Project Santa Cruz DevKit.
+| Azure Resource | Resource Name | Description |
+| -------------- | :------------ | ----------- |
+| [IoT Hub ](https://docs.microsoft.com/en-us/azure/iot-hub/about-iot-hub) | cruz-iot-hub | A central message hub for communications in both directions between your IoT application and IoT Edge devices (including Azure Percept). |
+| [Device Update for Iot Hub](https://docs.microsoft.com/en-us/azure/iot-hub-device-update/understand-device-update) | cruz-adu-dev  | Allows for Over The Air (OTA) updates to Azure Percept and other IoT Edge devices |
+| [Device Provisioning Service for IotHub](https://docs.microsoft.com/en-us/azure/iot-dps/about-iot-dps) | cruz-dps-dev  | Allows for zero-touch device provisiong of Azure Percept and other IoT Edge devices **Note:** *This component in the moclips environment has yet to be validated* |
+| [Storage Account](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction) | cruzstgxxxxx  | Provides storage resources for the moclips infrastructure environment. Currently used to store IoT Edge Device Update Images to be used with the Device Update Service. |
+
+## Getting Started
+This repository contains an [Azure Bicep](https://github.com/Azure/bicep) file, [moclips.bicep](https://github.com/mikelor/moclips/blob/main/azure/moclips.bicep) and generated ARM Template, [moclips.json](https://github.com/mikelor/moclips/blob/main/azure/moclips.json). This repository uses the [Azure CLI method of running bicep](https://github.com/Azure/bicep/blob/main/docs/installing.md#install-and-manage-via-azure-cli-easiest).
+You do not need to install bicep to utilize this repo, the generated ARM template is all you need to setup the Azure Environment for Azure Percept.
 
 ## Setting Up The Azure Environment
 Currently there are two ways to setup your Azure Environment:
-  1. Via the WSL (Windows Subsystem for Linux) Command Line
-  2. Via the Deploy to Azure Button
+  1. Using the Azure Command Line Interface
+  2. Using the Deploy to Azure Button
 
-### Via the Command Line
-If using WSL and the AZ CLI, simply clone this repository and utilize the azure/deployMoclips.sh script to create the necessary infrastructure for the Santa Cruz development environment
+### Using the Azure CLI
+If using WSL and the AZ CLI, simply clone this repository and utilize the  [azure/deployMoclips.sh](https://github.com/mikelor/moclips/blob/main/azure/deployMoclips.sh) script to create the necessary infrastructure to support Azure Percept (and other IoT Edge devices)
 
 ```
+$ git clone https://github.com/mikelor/moclips.git
 $ cd moclips/azure
 $ ./deployMoclips.sh <subscriptionName> <projectName> <projectEnvironment>
 ```
 Where
   * **subscriptionName** is the name of your Azure Subscription
-  * **projectName** is the name of your project
+  * **projectName** is the prefex name of your project
   * **environmentName** is one of 3 values dev, qa, prod
 
-The following example will create a "my-cruze-dev-grp" resource group in the YourSubscription Azure Subscription with two resources
-  1. my-cruz-iothub-dev
-  2. my-cruz-provsvcs-dev
+The following example will create a "cruz-dev-grp" resource group in the YourSubscription Azure Subscription with the following high-level resources
 
 ```
 $ cd moclips/azure
-$ ./deployMoclips.sh YourSubscription my-cruz dev
+$ ./azure/deployMoclips.sh YourSubscription my-cruz dev
 ```
 
-### Via Azure Deploy
-If you'd rather use the Azure Deploy script, simply press Deploy to Azure button below.
+### Using Azure Deploy
+If you'd rather use the Azure Deploy script, simply press **Deploy to Azure** button below.
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmikelor%2Fmoclips%2Fmain%2Fazure%2Fmoclips.json)
 
-At the moment this creates an Azure IoTHub as well as the Device Provisioning Service
 
 ### Next Steps
 After creating the Azure Environment, you can start the Azure Percept Out of the Box Experience ([OOBE Walkthrough](https://docs.microsoft.com/en-us/azure/azure-percept/quickstart-percept-dk-unboxing))
+
+I'll be leveraging the Moclips Azure Environment for all of my future forays into Azure hosted IoT solutions. Please check out my first project:
+1. [Dark Sense](https://github.com/mikelor/darksense). Using Azure Percept Studio and the Azure Percept Device Kit to identify timeline events in the turn of commercial aircraft.
 
 ## Links
 Azure resources that may be helpful in building your Percept based solution
@@ -57,4 +63,4 @@ Here are some links to some interesting projects that that people are working on
   * [Percept Mobile - Obstacle Avoidance Lego Car](https://techcommunity.microsoft.com/t5/internet-of-things/perceptmobile-azure-percept-obstacle-avoidance-lego-car/ba-p/2352666)
 
 #### Why Moclips?
-I needed a project name, and since Santa Cruz is a city on the California coast, I chose wonderful Moclips, WA. Definitely not Santa Cruz, but if you need some good Clam Chowder, stop by the Ocean Crest resort.
+Before there was Azure Percept, there was [Project Santa Cruz](https://www.microsoft.com/en-us/us-partner-blog/events/1-14-ai-with-the-santa-cruz-dev-kit/), an early iteration and private preview of the Azure Percept Device Kit. I needed a project name, and since Santa Cruz is a city on the California coast, I chose wonderful Moclips, WA. Definitely not Santa Cruz, but if you need some good Clam Chowder, stop by the Ocean Crest resort.

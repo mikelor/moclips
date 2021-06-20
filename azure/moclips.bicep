@@ -19,7 +19,8 @@ param provisioningServicesSkuCapacity int = 1
 
 var iotHubName = '${projectName}-iothub-${projectEnvironment}'
 var iotHubConsumerGroupName = 'adum'
-var provisioningServicesName = '${toLower(projectName)}${toLower(projectEnvironment)}${toLower(uniqueString(resourceGroup().id))}'
+
+var provisioningServicesName = '${projectName}-dps-${projectEnvironment}'
 
 var aduName = '${projectName}-adu-${projectEnvironment}'
 var aduInstanceName = '${projectName}-adui-${projectEnvironment}'
