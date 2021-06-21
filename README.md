@@ -1,5 +1,5 @@
 # Project Moclips
-A repository for documenting *my* good practices for setting up an  Azure  environment for hosting IoT solutions and the [Azure Percept Device Kit](https://docs.microsoft.com/en-us/azure/azure-percept/overview-azure-percept-dk) and other IoT Edge devices.
+A repository for documenting *my* good practices for setting up an IoT infrastructure environment that works with [Azure Percept Device Kit](https://docs.microsoft.com/en-us/azure/azure-percept/overview-azure-percept-dk) and other IoT Edge devices. If you are starting a new IoT Edge project, give this implementation a try.
 
 The following environment diagram for an overview of the resources created.
 
@@ -63,5 +63,8 @@ Here are some links to some interesting projects that that people are working on
   * [Package Delivery Monitoring](https://techcommunity.microsoft.com/t5/internet-of-things/set-up-your-own-end-to-end-package-delivery-monitoring-ai/ba-p/2323165)
   * [Percept Mobile - Obstacle Avoidance Lego Car](https://techcommunity.microsoft.com/t5/internet-of-things/perceptmobile-azure-percept-obstacle-avoidance-lego-car/ba-p/2352666)
 
-#### Why Moclips?
+## Contributing
+If you are interested in contributing or providing feedback, please open an issue and submit a pull request.
+
+## Why Moclips?
 Before there was Azure Percept, there was [Project Santa Cruz](https://www.microsoft.com/en-us/us-partner-blog/events/1-14-ai-with-the-santa-cruz-dev-kit/), an early iteration and private preview of the Azure Percept Device Kit. I needed a project name, and since Santa Cruz is a city on the California coast, I chose wonderful [Moclips, WA](https://en.wikipedia.org/wiki/Moclips,_Washington). Definitely not Santa Cruz, but if you need some good Clam Chowder, stop by the Ocean Crest resort.
