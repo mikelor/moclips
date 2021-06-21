@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.63.48766",
-      "templateHash": "6662767391602207130"
+      "templateHash": "1071077381388212993"
     }
   },
   "parameters": {
@@ -50,7 +50,7 @@
   "variables": {
     "iotHubName": "[format('{0}-iothub-{1}', parameters('projectName'), parameters('projectEnvironment'))]",
     "iotHubConsumerGroupName": "adum",
-    "provisioningServicesName": "[format('{0}{1}{2}', toLower(parameters('projectName')), toLower(parameters('projectEnvironment')), toLower(uniqueString(resourceGroup().id)))]",
+    "provisioningServicesName": "[format('{0}-dps-{1}', parameters('projectName'), parameters('projectEnvironment'))]",
     "aduName": "[format('{0}-adu-{1}', parameters('projectName'), parameters('projectEnvironment'))]",
     "aduInstanceName": "[format('{0}-adui-{1}', parameters('projectName'), parameters('projectEnvironment'))]",
     "storageAccountName": "[format('{0}{1}{2}', toLower(parameters('projectName')), toLower(parameters('projectEnvironment')), toLower(uniqueString(resourceGroup().id)))]",
