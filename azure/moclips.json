@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.63.48766",
-      "templateHash": "18031737678384056648"
+      "templateHash": "11788437464167780972"
     }
   },
   "parameters": {
@@ -136,7 +136,7 @@
       "properties": {
         "authorizationPolicies": [
           {
-            "keyName": "iotHubOwner",
+            "keyName": "iothubowner",
             "rights": "RegistryWrite, ServiceConnect, DeviceConnect"
           },
           {
@@ -156,7 +156,7 @@
             "rights": "RegistryWrite"
           },
           {
-            "keyName": "deviceUpdateService",
+            "keyName": "deviceupdateservice",
             "rights": "RegistryRead, ServiceConnect, DeviceConnect"
           }
         ],
@@ -261,30 +261,6 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.DeviceUpdate/accounts', variables('aduName'))]",
-        "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
-      ]
-    },
-    {
-      "type": "Microsoft.Devices/provisioningServices",
-      "apiVersion": "2020-03-01",
-      "name": "[variables('provisioningServicesName')]",
-      "location": "[parameters('location')]",
-      "sku": {
-        "name": "[parameters('provisioningServicesSkuName')]",
-        "capacity": "[parameters('provisioningServicesSkuCapacity')]"
-      },
-      "properties": {
-        "iotHubs": [
-          {
-            "applyAllocationPolicy": true,
-            "allocationWeight": 1,
-            "connectionString": "[format('HostName={0};SharedAccessKeyName={1};SharedAccessKey={2}', reference(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))).hostName, listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].keyName, listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iotHubName')), '2020-08-01').value[0].primaryKey)]",
-            "location": "[parameters('location')]"
-          }
-        ],
-        "allocationPolicy": "Hashed"
-      },
-      "dependsOn": [
         "[resourceId('Microsoft.Devices/IotHubs', variables('iotHubName'))]"
       ]
     }

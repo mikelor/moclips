@@ -101,7 +101,7 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
   properties: {
     authorizationPolicies: [
       {
-        keyName: 'iotHubOwner'
+        keyName: 'iothubowner'
         rights: 'RegistryWrite, ServiceConnect, DeviceConnect'
       }
       {
@@ -121,7 +121,7 @@ resource iotHubResource 'Microsoft.Devices/IotHubs@2020-08-01' = {
         rights: 'RegistryWrite'
       }
       {
-        keyName: 'deviceUpdateService'
+        keyName: 'deviceupdateservice'
         rights: 'RegistryRead, ServiceConnect, DeviceConnect'
       }
     ]
@@ -249,7 +249,7 @@ resource aduAccountsInstanceResource 'Microsoft.DeviceUpdate/accounts/instances@
     aduAccountsResource
   ]
 }
-
+/*
 resource provisioningServicesResource 'Microsoft.Devices/provisioningServices@2020-03-01' = {
   name: provisioningServicesName
   location: location
@@ -269,7 +269,7 @@ resource provisioningServicesResource 'Microsoft.Devices/provisioningServices@20
     allocationPolicy: 'Hashed'
   }
 }
-
+*/
 output stgAccount string = storageAccountName
 output stgEndpoint string = storageEndpoint
 output stgContainerUpdatesName string = storageContainerUpdatesName 
