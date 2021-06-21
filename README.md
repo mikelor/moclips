@@ -1,15 +1,16 @@
 # Project Moclips
 A repository for documenting *my* good practices for setting up an  infrastructure environment in Azure for hosting IoT solutions with [Azure Percept](https://azure.microsoft.com/en-us/services/azure-percept/) and other IoT Edge devices.
 
-See the following environment diagram for an overview of the resources created.
+The following environment diagram for an overview of the resources created.
+
 ![Moclips Environment Diagram](https://github.com/mikelor/moclips/blob/main/doc/moclipsenvironment.png).
 
 | Azure Resource | Resource Name | Description |
 | -------------- | :------------ | ----------- |
-| [IoT Hub ](https://docs.microsoft.com/en-us/azure/iot-hub/about-iot-hub) | cruz-iot-hub | A central message hub for communications in both directions between your IoT application and IoT Edge devices (including Azure Percept). |
-| [Device Update for Iot Hub](https://docs.microsoft.com/en-us/azure/iot-hub-device-update/understand-device-update) | cruz-adu-dev  | Allows for Over The Air (OTA) updates to Azure Percept and other IoT Edge devices |
-| [Device Provisioning Service for IotHub](https://docs.microsoft.com/en-us/azure/iot-dps/about-iot-dps) | cruz-dps-dev  | Allows for zero-touch device provisiong of Azure Percept and other IoT Edge devices **Note:** *This component in the moclips environment has yet to be validated* |
-| [Storage Account](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction) | cruzstgxxxxx  | Provides storage resources for the moclips infrastructure environment. Currently used to store IoT Edge Device Update Images to be used with the Device Update Service. |
+| [IoT Hub ](https://docs.microsoft.com/en-us/azure/iot-hub/about-iot-hub) | prj-iothub-env | A central message hub for communications in both directions between your IoT application and IoT Edge devices (including Azure Percept). |
+| [Storage Account](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction) | prjstgenvxxx  | Provides storage resources for the moclips infrastructure environment. Currently used to store IoT Edge Device Update Images to be used with the Device Update Service. |
+| [Device Provisioning Service for IotHub](https://docs.microsoft.com/en-us/azure/iot-dps/about-iot-dps) | prj-dps-env  | Allows for zero-touch device provisiong of Azure Percept and other IoT Edge devices **Note:** *This component in the moclips environment has yet to be validated* |
+| [Device Update for Iot Hub](https://docs.microsoft.com/en-us/azure/iot-hub-device-update/understand-device-update) | prj-adu-env  | Updates IoT Edge devices attached to IoT Hub using Over The Air (OTA) capability. There is currently a limit of one Device Update account per Subscription. Multiple Device Update Instances (ADUI) can be created to serve multiple IoT Hub instances. In the future we may want to break the Device Update Account from this Resource Group. |
 
 ## Getting Started
 This repository contains an [Azure Bicep](https://github.com/Azure/bicep) file, [moclips.bicep](https://github.com/mikelor/moclips/blob/main/azure/moclips.bicep) and generated ARM Template, [moclips.json](https://github.com/mikelor/moclips/blob/main/azure/moclips.json). This repository uses the [Azure CLI method of running bicep](https://github.com/Azure/bicep/blob/main/docs/installing.md#install-and-manage-via-azure-cli-easiest).
