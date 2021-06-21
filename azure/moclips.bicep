@@ -1,6 +1,6 @@
 @minLength(3)
 @maxLength(8)
-param projectName string = 'moclips'
+param projectName string = 'myprj'
 
 @allowed([
   'dev'
@@ -8,7 +8,7 @@ param projectName string = 'moclips'
   'stg'
   'prod'
 ])
-param projectEnvironment string = 'qa'
+param projectEnvironment string = 'dev'
 
 param location string = resourceGroup().location
 param iotHubSkuName string = 'S1'

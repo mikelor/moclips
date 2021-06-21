@@ -5,19 +5,19 @@
     "_generator": {
       "name": "bicep",
       "version": "0.4.63.48766",
-      "templateHash": "1071077381388212993"
+      "templateHash": "18031737678384056648"
     }
   },
   "parameters": {
     "projectName": {
       "type": "string",
-      "defaultValue": "moclips",
+      "defaultValue": "myprj",
       "maxLength": 8,
       "minLength": 3
     },
     "projectEnvironment": {
       "type": "string",
-      "defaultValue": "qa",
+      "defaultValue": "dev",
       "allowedValues": [
         "dev",
         "qa",
